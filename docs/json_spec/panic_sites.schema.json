@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusy-analyzer.local/schemas/panic_sites.schema.json",
+  "title": "rusy_analyzer panic_sites.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "mir_source",
+    "summary",
+    "sites"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0"
+    },
+    "mir_source": {
+      "type": "string",
+      "minLength": 1
+    },
+    "summary": {
+      "$ref": "#/$defs/PanicSummary"
+    },
+    "sites": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/PanicSite"
+      }
+    }
+  },
+  "$defs": {
+    "PanicSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_sites",
+        "categories"
+      ],
+      "properties": {
+        "total_sites": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "categories": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "EA",
+            "BV",
+            "AE"
+          ],
+          "properties": {
+            "EA": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "BV": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "AE": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        }
+      }
+    },
+    "PanicSite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "function",
+        "basic_block",
+        "is_cleanup",
+        "category",
+        "panic_kind",
+        "panic_origin",
+        "evidence_type",
+        "evidence",
+        "line_start",
+        "line_end"
+      ],
+      "properties": {
+        "function": {
+          "type": "string",
+          "minLength": 1
+        },
+        "basic_block": {
+          "type": "string",
+          "pattern": "^bb[0-9]+$"
+        },
+        "is_cleanup": {
+          "type": "boolean"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "EA",
+            "BV",
+            "AE"
+          ]
+        },
+        "panic_kind": {
+          "type": "string",
+          "enum": [
+            "explicit_panic",
+            "assert_failed",
+            "assert_failed_eq",
+            "assert_failed_ne",
+            "unwrap_failed",
+            "index_out_of_bounds",
+            "not_a_char_boundary",
+            "add_overflow",
+            "subtract_overflow",
+            "multiply_overflow",
+            "neg_overflow",
+            "shift_left_overflow",
+            "shift_right_overflow",
+            "divide_by_zero",
+            "remainder_by_zero",
+            "resumed_after_return",
+            "resumed_after_panic",
+            "misaligned_pointer_dereference",
+            "null_pointer_dereference",
+            "invalid_enum_construction",
+            "unknown_assert",
+            "unknown_explicit_call"
+          ]
+        },
+        "panic_origin": {
+          "type": "string",
+          "enum": [
+            "implicit_assert",
+            "explicit_call"
+          ]
+        },
+        "evidence_type": {
+          "type": "string",
+          "enum": [
+            "assert",
+            "call"
+          ]
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1
+        },
+        "line_start": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "line_end": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

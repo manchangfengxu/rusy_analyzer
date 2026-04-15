@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusy-analyzer.local/schemas/sbi_interfaces.schema.json",
+  "title": "rusy_analyzer sbi_interfaces.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "target_repository",
+    "extension_register",
+    "function_register",
+    "parameter_registers",
+    "extensions"
+  ],
+  "properties": {
+    "target_repository": {
+      "type": "string",
+      "minLength": 1
+    },
+    "extension_register": {
+      "type": "string",
+      "const": "a7"
+    },
+    "function_register": {
+      "type": "string",
+      "const": "a6"
+    },
+    "parameter_registers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["a0", "a1", "a2", "a3", "a4", "a5"]
+      },
+      "minItems": 6,
+      "maxItems": 6
+    },
+    "extensions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ExtensionInterface"
+      }
+    }
+  },
+  "$defs": {
+    "ExtensionInterface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "module",
+        "extension_name",
+        "eid_constant",
+        "eid_value_hex",
+        "source_file",
+        "dispatcher_helper",
+        "functions"
+      ],
+      "properties": {
+        "module": {
+          "type": "string",
+          "minLength": 1
+        },
+        "extension_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "eid_constant": {
+          "type": "string",
+          "pattern": "^EID_[A-Z0-9_]+$"
+        },
+        "eid_value_hex": {
+          "type": "string",
+          "pattern": "^0x[0-9A-F]+$"
+        },
+        "source_file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dispatcher_helper": {
+          "type": "string",
+          "minLength": 1
+        },
+        "functions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FunctionInterface"
+          }
+        }
+      }
+    },
+    "FunctionInterface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "function_name",
+        "function_id_hex",
+        "used_registers",
+        "argument_expressions"
+      ],
+      "properties": {
+        "function_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "function_id_hex": {
+          "type": "string",
+          "pattern": "^0x[0-9A-F]+$"
+        },
+        "used_registers": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["a0", "a1", "a2", "a3", "a4", "a5"]
+          },
+          "uniqueItems": true
+        },
+        "argument_expressions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
