@@ -1,0 +1,664 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusy-analyzer.local/schemas/fuzz_targets.schema.json",
+  "title": "rusy_analyzer fuzz_targets.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "target_repository",
+    "dispatch_model",
+    "input_artifacts",
+    "summary",
+    "targets"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "target_repository": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dispatch_model": {
+      "$ref": "#/$defs/DispatchModel"
+    },
+    "input_artifacts": {
+      "$ref": "#/$defs/InputArtifacts"
+    },
+    "summary": {
+      "$ref": "#/$defs/FuzzTargetSummary"
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/FuzzTarget"
+      }
+    }
+  },
+  "$defs": {
+    "DispatchModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interface_family",
+        "dispatch_style",
+        "selector_layers",
+        "input_slots"
+      ],
+      "properties": {
+        "interface_family": {
+          "type": "string",
+          "enum": [
+            "sbi",
+            "hypercall",
+            "syscall",
+            "ioctl",
+            "kernel_dispatch",
+            "custom"
+          ]
+        },
+        "dispatch_style": {
+          "type": "string",
+          "enum": [
+            "selector_dispatch",
+            "mixed_dispatch",
+            "unknown"
+          ]
+        },
+        "selector_layers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/SelectorLayer"
+          }
+        },
+        "input_slots": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/InputSlot"
+          }
+        }
+      }
+    },
+    "SelectorLayer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "role",
+        "carrier_type",
+        "carrier_name",
+        "selector_position"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "namespace",
+            "operation",
+            "suboperation",
+            "vector",
+            "service",
+            "custom"
+          ]
+        },
+        "carrier_type": {
+          "type": "string",
+          "enum": [
+            "register",
+            "argument",
+            "memory",
+            "immediate",
+            "table_key",
+            "custom"
+          ]
+        },
+        "carrier_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selector_position": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "InputSlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "carrier_type",
+        "slot_position"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "carrier_type": {
+          "type": "string",
+          "enum": [
+            "register",
+            "argument",
+            "memory",
+            "context",
+            "custom"
+          ]
+        },
+        "slot_position": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "width_bits": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "direction": {
+          "type": "string",
+          "enum": [
+            "in",
+            "inout"
+          ]
+        }
+      }
+    },
+    "InputArtifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "interface_report",
+        "panic_report",
+        "mir_text"
+      ],
+      "properties": {
+        "interface_report": {
+          "$ref": "#/$defs/InterfaceArtifact"
+        },
+        "panic_report": {
+          "$ref": "#/$defs/PanicArtifact"
+        },
+        "mir_text": {
+          "$ref": "#/$defs/MirArtifact"
+        }
+      }
+    },
+    "InterfaceArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "schema_id"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schema_id": {
+          "type": "string",
+          "const": "https://rusy-analyzer.local/schemas/sbi_interfaces.schema.json"
+        }
+      }
+    },
+    "PanicArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "schema_id",
+        "schema_version"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "schema_id": {
+          "type": "string",
+          "const": "https://rusy-analyzer.local/schemas/panic_sites.schema.json"
+        },
+        "schema_version": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "MirArtifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "format"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "format": {
+          "type": "string",
+          "const": "unpretty_mir_text"
+        }
+      }
+    },
+    "FuzzTargetSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_targets",
+        "categories",
+        "statuses",
+        "targets_with_call_trace"
+      ],
+      "properties": {
+        "total_targets": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "categories": {
+          "$ref": "panic_sites.schema.json#/$defs/PanicSummary/properties/categories"
+        },
+        "statuses": {
+          "$ref": "#/$defs/ConstraintStatusSummary"
+        },
+        "targets_with_call_trace": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "ConstraintStatusSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "complete",
+        "partial",
+        "truncated",
+        "unresolved"
+      ],
+      "properties": {
+        "complete": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "partial": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "truncated": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unresolved": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "FuzzTarget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_id",
+        "route",
+        "panic_site",
+        "constraint"
+      ],
+      "properties": {
+        "target_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "route": {
+          "$ref": "#/$defs/RouteBinding"
+        },
+        "panic_site": {
+          "$ref": "panic_sites.schema.json#/$defs/PanicSite"
+        },
+        "constraint": {
+          "$ref": "#/$defs/ConstraintBundle"
+        },
+        "call_trace": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/CallTraceFrame"
+          }
+        }
+      }
+    },
+    "RouteBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "route_id",
+        "entry_name",
+        "selector_values",
+        "source_binding"
+      ],
+      "properties": {
+        "route_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "entry_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selector_values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/SelectorValue"
+          }
+        },
+        "source_binding": {
+          "$ref": "#/$defs/SbiSourceBinding"
+        }
+      }
+    },
+    "SelectorValue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selector_name",
+        "selector_value",
+        "value_format"
+      ],
+      "properties": {
+        "selector_name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selector_value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "value_format": {
+          "type": "string",
+          "enum": [
+            "hex",
+            "decimal",
+            "string",
+            "symbolic",
+            "mixed"
+          ]
+        },
+        "selector_symbol": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "SbiSourceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_kind",
+        "extension",
+        "function"
+      ],
+      "properties": {
+        "source_kind": {
+          "type": "string",
+          "const": "sbi_interfaces_v1"
+        },
+        "extension": {
+          "$ref": "sbi_interfaces.schema.json#/$defs/ExtensionInterface"
+        },
+        "function": {
+          "$ref": "sbi_interfaces.schema.json#/$defs/FunctionInterface"
+        }
+      }
+    },
+    "ConstraintBundle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "format",
+        "expression",
+        "clauses",
+        "external_inputs",
+        "substitutions",
+        "slice_depth",
+        "stop_reasons",
+        "warnings"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "complete",
+            "partial",
+            "truncated",
+            "unresolved"
+          ]
+        },
+        "format": {
+          "type": "string",
+          "const": "clause_conjunction_v1"
+        },
+        "expression": {
+          "type": "string",
+          "minLength": 1
+        },
+        "clauses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ConstraintClause"
+          }
+        },
+        "external_inputs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ExternalInputRef"
+          }
+        },
+        "substitutions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/SymbolSubstitution"
+          }
+        },
+        "slice_depth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 50
+        },
+        "stop_reasons": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "depth_limit",
+              "opaque_call",
+              "unsupported_statement",
+              "unknown_value_origin",
+              "cycle_detected",
+              "missing_entry_mapping"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "ConstraintClause": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clause_id",
+        "role",
+        "expression"
+      ],
+      "properties": {
+        "clause_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "path_guard",
+            "panic_guard",
+            "value_relation",
+            "assumption",
+            "opaque_boundary"
+          ]
+        },
+        "expression": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_function": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_basic_block": {
+          "type": "string",
+          "pattern": "^bb[0-9]+$"
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "ExternalInputRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "carrier_type",
+        "slot_position"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "carrier_type": {
+          "type": "string",
+          "enum": [
+            "register",
+            "argument",
+            "memory",
+            "context",
+            "custom"
+          ]
+        },
+        "slot_position": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_expression": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "SymbolSubstitution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mir_symbol",
+        "binding_kind",
+        "resolved_expression"
+      ],
+      "properties": {
+        "mir_symbol": {
+          "type": "string",
+          "pattern": "^_[0-9]+$"
+        },
+        "binding_kind": {
+          "type": "string",
+          "enum": [
+            "external_input",
+            "derived",
+            "constant",
+            "unknown"
+          ]
+        },
+        "resolved_expression": {
+          "type": "string",
+          "minLength": 1
+        },
+        "depends_on": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "CallTraceFrame": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "depth",
+        "function",
+        "role",
+        "call_resolution"
+      ],
+      "properties": {
+        "depth": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "function": {
+          "type": "string",
+          "minLength": 1
+        },
+        "basic_block": {
+          "type": "string",
+          "pattern": "^bb[0-9]+$"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "entry",
+            "intermediate",
+            "panic_owner"
+          ]
+        },
+        "call_resolution": {
+          "type": "string",
+          "enum": [
+            "resolved",
+            "opaque",
+            "indirect",
+            "truncated"
+          ]
+        },
+        "call_kind": {
+          "type": "string",
+          "enum": [
+            "direct",
+            "trait_dispatch",
+            "indirect",
+            "foreign",
+            "unknown"
+          ]
+        },
+        "callsite": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
