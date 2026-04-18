@@ -1,17 +1,18 @@
 # `fuzz_targets.json` Output Specification
 
-This directory records the Phase A design contract for Milestone 3.
-The corresponding producer has not been implemented yet; this document exists so the schema can be reviewed and locked before code is written.
+This directory records the current output contract for the Milestone 3 stitcher in
+[`src/bin/fuzz_stitcher.rs`](/home/ssdns/code/rusy_analyzer/src/bin/fuzz_stitcher.rs).
 
-The future M3 pipeline will consume:
+The current M3 pipeline consumes:
 
 - `sbi_interfaces.json`
 - `panic_sites.json`
 - `sbi.mir`
 
-and produce:
+and produces:
 
 - `fuzz_targets.json`
+- `local_constraints.json`
 
 ## Design Goal
 
@@ -22,6 +23,14 @@ This schema is intentionally split into two layers:
 
 That split is the main decoupling strategy for future projects with a centralized dispatch layer, such as hypercall routers, OS syscall tables, kernel service multiplexers, or ioctl-style command gateways.
 Downstream consumers should avoid hard-coding `extension` / `function` semantics and instead read the normalized selector chain.
+
+Internally, M3 now runs in two stages:
+
+- local constraint harvest
+- route stitching
+
+Only successfully stitched targets are serialized into `targets`.
+The harvest-stage results are emitted separately into `local_constraints.json` so they do not pollute the stitched target array.
 
 ## Top-Level Structure
 
@@ -45,14 +54,14 @@ It describes the dispatch family once at the document level, so each target only
 | --- | --- | --- |
 | `interface_family` | `string` | Current broad interface family. Initial enum: `sbi`, `hypercall`, `syscall`, `ioctl`, `kernel_dispatch`, `custom`. |
 | `dispatch_style` | `string` | Whether the target uses a selector-driven centralized dispatcher. Current values: `selector_dispatch`, `mixed_dispatch`, `unknown`. |
-| `selector_layers` | `SelectorLayer[]` | Ordered selector channels, for example `extension -> function` in SBI or `service -> opcode` in a hypercall ABI. |
+| `selector_layers` | `SelectorLayer[]` | Ordered selector channels, for example `extension_id -> function_id` in SBI or `service -> opcode` in a hypercall ABI. |
 | `input_slots` | `InputSlot[]` | Ordered externally controllable inputs that may later appear in constraints. |
 
 ### `SelectorLayer`
 
 | Field | Type | Meaning |
 | --- | --- | --- |
-| `name` | `string` | Logical selector name, for example `extension`, `function`, `service`, `opcode`. |
+| `name` | `string` | Logical selector name, for example `extension_id`, `function_id`, `service`, `opcode`. |
 | `role` | `string` | Semantic role of this selector layer. |
 | `carrier_type` | `string` | How the selector is carried, for example register, argument, memory field, immediate, or table key. |
 | `carrier_name` | `string` | Concrete carrier identifier, for example `a7`, `x0`, `rax`, `arg0`. |
@@ -148,7 +157,7 @@ The canonical human-readable surface is still `expression`, but downstream tools
 | --- | --- | --- |
 | `status` | `string` | Resolution status: `complete`, `partial`, `truncated`, `unresolved`. |
 | `format` | `string` | Current required value: `clause_conjunction_v1`. |
-| `expression` | `string` | Canonical readable conjunction after algebraic substitution, for example `(a0 + 5) * 2 >= 100 && a1 != 0`. |
+| `expression` | `string` | Canonical readable conjunction after algebraic substitution, for example `(a0 + 5) * 2 >= 100 && a1 != 0`. It may be empty when the bundle is `unresolved`. |
 | `clauses` | `ConstraintClause[]` | Clause-level decomposition of the full expression. |
 | `external_inputs` | `ExternalInputRef[]` | Subset of dispatch inputs that actually influence this target. |
 | `substitutions` | `SymbolSubstitution[]` | Audit trail showing how MIR locals were resolved upward. |
@@ -238,14 +247,14 @@ while keeping `panic_site`, `constraint`, `call_trace`, `summary`, and most down
     "dispatch_style": "selector_dispatch",
     "selector_layers": [
       {
-        "name": "extension",
+        "name": "extension_id",
         "role": "namespace",
         "carrier_type": "register",
         "carrier_name": "a7",
         "selector_position": 0
       },
       {
-        "name": "function",
+        "name": "function_id",
         "role": "operation",
         "carrier_type": "register",
         "carrier_name": "a6",
@@ -307,13 +316,13 @@ while keeping `panic_site`, `constraint`, `call_trace`, `summary`, and most down
         "entry_name": "TIME::SET_TIMER",
         "selector_values": [
           {
-            "selector_name": "extension",
+            "selector_name": "extension_id",
             "selector_value": "0x54494D45",
             "value_format": "hex",
             "selector_symbol": "EID_TIME"
           },
           {
-            "selector_name": "function",
+            "selector_name": "function_id",
             "selector_value": "0x0",
             "value_format": "hex",
             "selector_symbol": "SET_TIMER"

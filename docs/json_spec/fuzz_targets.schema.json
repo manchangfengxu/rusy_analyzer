@@ -446,8 +446,7 @@
           "const": "clause_conjunction_v1"
         },
         "expression": {
-          "type": "string",
-          "minLength": 1
+          "type": "string"
         },
         "clauses": {
           "type": "array",
