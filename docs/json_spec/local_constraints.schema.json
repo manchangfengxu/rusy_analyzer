@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://rusy-analyzer.local/schemas/local_constraints.schema.json",
+  "title": "rusy_analyzer local_constraints.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "target_repository",
+    "dispatch_model",
+    "input_artifacts",
+    "summary",
+    "candidates"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "target_repository": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dispatch_model": {
+      "$ref": "fuzz_targets.schema.json#/$defs/DispatchModel"
+    },
+    "input_artifacts": {
+      "$ref": "fuzz_targets.schema.json#/$defs/InputArtifacts"
+    },
+    "summary": {
+      "$ref": "#/$defs/LocalConstraintSummary"
+    },
+    "candidates": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/LocalConstraintCandidate"
+      }
+    }
+  },
+  "$defs": {
+    "LocalConstraintSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_candidates",
+        "statuses",
+        "candidates_with_seed_context",
+        "candidates_with_nonempty_expression"
+      ],
+      "properties": {
+        "total_candidates": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "statuses": {
+          "$ref": "#/$defs/LocalConstraintStatusSummary"
+        },
+        "candidates_with_seed_context": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "candidates_with_nonempty_expression": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "LocalConstraintStatusSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "partial",
+        "truncated",
+        "unresolved"
+      ],
+      "properties": {
+        "partial": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "truncated": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unresolved": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "LocalConstraintCandidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "candidate_id",
+        "panic_site",
+        "seed_context",
+        "constraint",
+        "warnings"
+      ],
+      "properties": {
+        "candidate_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "panic_site": {
+          "$ref": "panic_sites.schema.json#/$defs/PanicSite"
+        },
+        "seed_context": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/SeedContext"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "constraint": {
+          "$ref": "fuzz_targets.schema.json#/$defs/ConstraintBundle"
+        },
+        "route_hints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/RouteHint"
+          }
+        },
+        "warnings": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "SeedContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seed_expression",
+        "seed_locals",
+        "evidence",
+        "source_function",
+        "source_basic_block"
+      ],
+      "properties": {
+        "seed_expression": {
+          "type": "string"
+        },
+        "seed_locals": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^_[0-9]+$"
+          }
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_function": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_basic_block": {
+          "type": "string",
+          "pattern": "^bb[0-9]+$"
+        }
+      }
+    },
+    "RouteHint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hint_kind",
+        "value"
+      ],
+      "properties": {
+        "hint_kind": {
+          "$ref": "#/$defs/RouteHintKind"
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_function": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_basic_block": {
+          "type": "string",
+          "pattern": "^bb[0-9]+$"
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "RouteHintKind": {
+      "type": "string",
+      "enum": [
+        "inline_helper",
+        "selector_guard",
+        "caller_tail"
+      ]
+    }
+  }
+}
